@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.Html
 import android.view.View
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
@@ -30,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var submitPollButton: Button
     private lateinit var pollResultButton: Button
     private lateinit var errorMessageTextView: TextView
+    private lateinit var progressBar: ProgressBar
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,8 +48,8 @@ class MainActivity : AppCompatActivity() {
     //setup viewmodel and observers
     private fun setupViewModel()
     {
-        languagePollViewModel.languagePoll.observe(this, renderPoll)
         languagePollViewModel.isViewLoading.observe(this, isViewLoadingObserver)
+        languagePollViewModel.languagePoll.observe(this, renderPoll)
         languagePollViewModel.onMessageError.observe(this, onMessageErrorObserver)
     }
 
@@ -59,6 +61,7 @@ class MainActivity : AppCompatActivity() {
         pollChoicesRadioGroup = findViewById(R.id.radiogroup_pollchoice)
         pollResultButton = findViewById(R.id.poll_result_button)
         errorMessageTextView = findViewById(R.id.error_textview)
+        progressBar =  findViewById(R.id.progressBar)
 
         submitPollButton.setOnClickListener(submitPollButtonOnClickListener)
         pollResultButton.setOnClickListener(showPollResultOnClickListener)
@@ -79,14 +82,16 @@ class MainActivity : AppCompatActivity() {
             //Attach button to RadioGroup.
             pollChoicesRadioGroup.addView(rbn)
         }
+        progressBar.visibility = View.GONE
     }
 
-    //TODO: do some thing here
     private val isViewLoadingObserver = Observer<Boolean> {
-
+        progressBar.visibility = View.VISIBLE
     }
-    // TODO: do something  here
+
+
     private val onMessageErrorObserver = Observer<Any> {
+        progressBar.visibility = View.GONE
         val builder = AlertDialog.Builder(this)
         with(builder)
         {
@@ -97,6 +102,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val submitPollButtonOnClickListener = View.OnClickListener {
+        progressBar.visibility = View.VISIBLE
         errorMessageTextView.visibility = View.GONE
         val id: Int = pollChoicesRadioGroup.checkedRadioButtonId
         if (id > -1) {
@@ -107,6 +113,7 @@ class MainActivity : AppCompatActivity() {
             errorMessageTextView.text = getString(R.string.error_msg)
             errorMessageTextView.visibility = View.VISIBLE
         }
+        progressBar.visibility = View.GONE
     }
 
     @Suppress("DEPRECATION")
