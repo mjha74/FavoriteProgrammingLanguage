@@ -1,13 +1,17 @@
 package mykt.tutorials.favoriteprogramminglanguage.repository
 
-import mykt.tutorials.favoriteprogramminglanguage.data.OperationCallback
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import mykt.tutorials.favoriteprogramminglanguage.model.LanguagePoll
 import mykt.tutorials.favoriteprogramminglanguage.model.LanguagePollResult
 
 class LanguagePollRepository (private val languagePollDataSource: LanguagePollDataSource) {
 
-    fun getPoll(callback: OperationCallback<LanguagePoll>) {
-        languagePollDataSource.getPoll(callback)
+    fun getPoll() : Flow<LanguagePoll> {
+        return flow {
+            emit(languagePollDataSource.getPoll())
+        }.map { it }
     }
 
     fun savePollResponse(languagePollResult: LanguagePollResult)

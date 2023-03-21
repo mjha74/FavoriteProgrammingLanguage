@@ -8,21 +8,17 @@ import mykt.tutorials.favoriteprogramminglanguage.model.LanguagePoll
 import mykt.tutorials.favoriteprogramminglanguage.model.LanguagePollResult
 import mykt.tutorials.favoriteprogramminglanguage.repository.LanguagePollDataSource
 import org.json.JSONObject
-import java.io.IOException
 import javax.inject.Inject
 
 
 class LanguagePollRemoteDataSource @Inject constructor(val context: Context): LanguagePollDataSource {
 
-    override fun getPoll(callback: OperationCallback<LanguagePoll>) {
-        lateinit var jsonString: String
-        try {
-            jsonString = this::class.java.classLoader?.getResource("poll.json")?.readText() ?: ""
-        } catch (ioException: IOException) {
-            callback.onError(ioException.message)
-        }
-        val languagePoll: LanguagePoll = Gson().fromJson(jsonString, LanguagePoll::class.java)
-       callback.onSuccess(languagePoll)
+    override fun getPoll(): LanguagePoll {
+
+        val jsonString: String =
+            this::class.java.classLoader?.getResource("poll.json")?.readText() ?: ""
+        return Gson().fromJson(jsonString, LanguagePoll::class.java)
+
     }
 
     override fun fetchPollResult() : LanguagePollResult {

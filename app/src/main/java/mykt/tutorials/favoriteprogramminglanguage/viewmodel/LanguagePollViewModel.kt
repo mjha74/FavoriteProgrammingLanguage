@@ -1,26 +1,22 @@
 package mykt.tutorials.favoriteprogramminglanguage.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import mykt.tutorials.favoriteprogramminglanguage.data.OperationCallback
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
 import mykt.tutorials.favoriteprogramminglanguage.model.LanguagePoll
 import mykt.tutorials.favoriteprogramminglanguage.model.LanguagePollResult
 import mykt.tutorials.favoriteprogramminglanguage.repository.LanguagePollRepository
-
-
+import mykt.tutorials.favoriteprogramminglanguage.view.base.UiState
 
 
 class LanguagePollViewModel(private val repository: LanguagePollRepository, private var languagePollResult: LanguagePollResult) : ViewModel() {
 
-    private val _languagePoll = MutableLiveData<LanguagePoll>()
-    val languagePoll: LiveData<LanguagePoll> = _languagePoll
+    private val _uiState = MutableStateFlow<UiState<LanguagePoll>>(UiState.Loading)
 
-    private val _isViewLoading = MutableLiveData<Boolean>()
-    val isViewLoading: LiveData<Boolean> = _isViewLoading
-
-    private val _onMessageError = MutableLiveData<Any>()
-    val onMessageError: LiveData<Any> = _onMessageError
+    val uiState: StateFlow<UiState<LanguagePoll>> = _uiState
 
     // init call
     init {
@@ -30,22 +26,16 @@ class LanguagePollViewModel(private val repository: LanguagePollRepository, priv
     // call repository to load the data
     private fun loadPoll()
     {
-        _isViewLoading.value = true
-        repository.getPoll(object : OperationCallback<LanguagePoll>
-        {
-            override fun onSuccess(data: LanguagePoll?) {
-                _isViewLoading.value = false
-                if (data != null) {
-                    populatePollResult(data) // load the poll choices with all initial value 0
-                    _languagePoll.value = data
+        viewModelScope.launch {
+            repository.getPoll()
+                .catch { e ->
+                    _uiState.value = UiState.Error(e.toString())
                 }
-            }
-
-            override fun onError(error: String?) {
-                _isViewLoading.value = false
-                _onMessageError.value = error
-            }
-        })
+                .collect {
+                    populatePollResult(it) // load the poll choices with all initial value 0
+                    _uiState.value = UiState.Success(it)
+                }
+        }
     }
 
     private fun populatePollResult(data: LanguagePoll)
